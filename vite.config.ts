@@ -1,12 +1,14 @@
 import vinext from "vinext";
 import { defineConfig } from "vite";
-import hostingConfig from "./.openai/hosting.json" with { type: "json" };
 import { sites } from "./build/sites-vite-plugin.ts";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
-const { d1, r2 } = hostingConfig;
+// The public repository has no remote database or bucket. Sites project
+// metadata stays local and is not required for reproducible builds.
+const d1 = process.env.KIPSET_D1_BINDING || null;
+const r2 = process.env.KIPSET_R2_BINDING || null;
 
 // Codex sandbox previews use polling so file changes are detected reliably.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
