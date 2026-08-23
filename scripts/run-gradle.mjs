@@ -12,7 +12,7 @@ if (!task || !/^[A-Za-z][A-Za-z0-9:]*$/.test(task)) {
 
 const windows = process.platform === "win32";
 const wrapper = windows ? "gradlew.bat" : "./gradlew";
-const result = spawnSync(wrapper, [task], {
+const result = spawnSync(wrapper, [task, "--no-daemon", "--stacktrace"], {
   cwd: androidRoot,
   stdio: "inherit",
   shell: windows,

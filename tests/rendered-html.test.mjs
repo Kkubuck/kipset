@@ -22,14 +22,14 @@ async function render() {
   );
 }
 
-test("server-renders the Round 27 application shell", async () => {
+test("server-renders the KIPSET application shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Round 27 — Cindy AMRAP Timer<\/title>/i);
-  assert.match(html, /<iframe[^>]+title="Round 27 Cindy AMRAP Timer"/i);
-  assert.match(html, /src="\/cindy\.html"/i);
+  assert.match(html, /<title>KIPSET — Functional Fitness Companion<\/title>/i);
+  assert.match(html, /<iframe[^>]+title="KIPSET Functional Fitness Companion"/i);
+  assert.match(html, /src="\/kipset\.html"/i);
   assert.doesNotMatch(html, /codex-preview|loading skeleton|react-loading-skeleton/i);
 });

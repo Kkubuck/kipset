@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Round 27 — Cindy AMRAP Timer",
-  description: "A clean Cindy timer with dynamic round pacing and shareable workout results.",
+  title: "KIPSET — Functional Fitness Companion",
+  description: "A focused workout library, adaptive timer, training log, and running companion.",
 };
 
 export default function Home() {
   return (
-    <main className="cindy-site">
+    <main className="kipset-site">
       <iframe
-        title="Round 27 Cindy AMRAP Timer"
-        src="/cindy.html"
+        title="KIPSET Functional Fitness Companion"
+        src="/kipset.html"
         allowFullScreen
       />
     </main>

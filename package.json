@@ -1,47 +1,55 @@
 {
-  "name": "round-27-amrap-timer",
-  "version": "1.1.0",
-  "description": "A focused Cindy and AMRAP pace timer with dynamic round targets and shareable results.",
-  "author": "Round 27",
+  "name": "kipset-functional-fitness",
+  "version": "2.0.0",
+  "description": "An offline-first functional fitness workout library, adaptive timer, running log, and training calendar.",
+  "author": "KIPSET",
   "private": true,
   "main": "desktop/main.mjs",
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
+    "web:bundle": "node scripts/build-web.mjs",
+    "predev": "npm run web:bundle",
     "dev": "cross-env WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
+    "prebuild": "npm run web:bundle",
     "build": "cross-env WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "start": "cross-env WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/source-sync.test.mjs",
-    "mobile:build": "node scripts/build-mobile.mjs",
-    "mobile:sync": "npm run mobile:build && cap sync android",
-    "mobile:icons": "node scripts/generate-android-icons.mjs",
-    "android:debug": "npm run mobile:sync && npm run mobile:icons && node scripts/run-gradle.mjs assembleDebug",
-    "android:bundle": "npm run mobile:sync && npm run mobile:icons && node scripts/run-gradle.mjs bundleRelease",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/source-sync.test.mjs tests/fitness-metrics.test.mjs tests/wod-data.test.mjs tests/i18n.test.mjs tests/story-output.test.mjs",
+    "desktop:runtime": "node node_modules/electron/install.js",
     "desktop:build": "node scripts/build-desktop.mjs",
-    "desktop:dev": "npm run desktop:build && electron .",
-    "desktop:portable": "npm run desktop:build && electron-builder --win portable --x64 --config.directories.output=release/portable --publish never",
-    "desktop:installer": "npm run desktop:build && electron-builder --win nsis --x64 --config.directories.output=release/installer --publish never",
+    "desktop:dev": "npm run desktop:runtime && npm run desktop:build && electron .",
+    "desktop:portable": "npm run desktop:runtime && npm run desktop:build && electron-builder --win portable --x64 --config.electronDist=node_modules/electron/dist --config.directories.output=release/portable --publish never",
+    "desktop:installer": "npm run desktop:runtime && npm run desktop:build && electron-builder --win nsis --x64 --config.electronDist=node_modules/electron/dist --config.directories.output=release/installer --publish never",
     "desktop:windows": "npm run desktop:portable && npm run desktop:installer",
-    "desktop:mac": "npm run desktop:build && node scripts/build-macos-icon.mjs && electron-builder --mac dmg zip --config.directories.output=release/macos --publish never",
+    "desktop:mac:x64": "npm run desktop:runtime && npm run desktop:build && electron-builder --mac dmg zip --x64 --config.directories.output=release/macos-x64 --publish never",
+    "desktop:mac:arm64": "npm run desktop:runtime && npm run desktop:build && electron-builder --mac dmg zip --arm64 --config.directories.output=release/macos-arm64 --publish never",
     "desktop:package": "npm run desktop:windows",
+    "mobile:build": "node scripts/build-mobile.mjs",
+    "android:sync": "npm run mobile:build && npx cap sync android && npm run android:assets",
+    "android:assets": "node scripts/generate-android-assets.mjs",
+    "android:debug": "npm run android:sync && node scripts/run-gradle.mjs assembleDebug",
+    "android:release": "npm run android:sync && node scripts/run-gradle.mjs assembleRelease",
     "check:desktop": "npm run desktop:build && node --test tests/desktop-build.test.mjs",
-    "check:release": "npm run test && npm run mobile:sync && node --test tests/mobile-build.test.mjs && npm run check:desktop",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern mobile-dist --ignore-pattern desktop-dist --ignore-pattern desktop-resources --ignore-pattern release --ignore-pattern android"
+    "check:mobile": "npm run android:sync && node --test tests/mobile-build.test.mjs",
+    "check:release": "npm run test && npm run check:desktop && npm run check:mobile",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern desktop-dist --ignore-pattern desktop-resources --ignore-pattern mobile-dist --ignore-pattern android --ignore-pattern release --ignore-pattern public/kipset-assets"
   },
   "dependencies": {
-    "@capacitor/android": "^8.5.0",
-    "@capacitor/app": "^8.1.1",
-    "@capacitor/core": "^8.5.0",
-    "@capacitor/filesystem": "^8.1.2",
-    "@capacitor/haptics": "^8.0.2",
-    "@capacitor/share": "^8.0.1",
+    "lucide-react": "^1.33.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.5.0",
     "@cloudflare/vite-plugin": "^1.51.2",
+    "@capacitor/android": "8.4.2",
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/browser": "^8.0.4",
+    "@capacitor/cli": "8.4.2",
+    "@capacitor/core": "8.4.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/share": "^8.0.1",
     "@eslint/js": "9.39.4",
     "@next/eslint-plugin-next": "16.2.6",
     "@tailwindcss/postcss": "4.2.1",
@@ -49,7 +57,7 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
-    "@vitejs/plugin-rsc": "0.5.26",
+    "@vitejs/plugin-rsc": "^0.5.34",
     "cross-env": "^10.1.0",
     "electron": "^43.3.0",
     "electron-builder": "^26.15.3",
@@ -64,13 +72,13 @@
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "typescript-eslint": "8.59.3",
-    "vinext": "^1.0.0-beta.5",
+    "vinext": "^1.0.0-beta.8",
     "vite": "^8.2.1",
     "wrangler": "^4.120.1"
   },
   "build": {
-    "appId": "app.jisanglee.round27",
-    "productName": "Round 27",
+    "appId": "app.kipset.training",
+    "productName": "KIPSET",
     "asar": true,
     "compression": "maximum",
     "directories": {
@@ -86,28 +94,18 @@
       "icon": "desktop-resources/icon.png"
     },
     "mac": {
-      "icon": "desktop-resources/icon.icns",
+      "icon": "desktop-resources/icon.png",
       "category": "public.app-category.healthcare-fitness",
-      "artifactName": "Round-27-${version}-macOS-${arch}.${ext}",
-      "identity": null,
-      "hardenedRuntime": false
-    },
-    "dmg": {
-      "backgroundColor": "#000000"
+      "artifactName": "KIPSET-${version}-macOS-${arch}.${ext}"
     },
     "portable": {
-      "artifactName": "Round-27-Portable-${version}-${arch}.${ext}"
+      "artifactName": "KIPSET-Portable-${version}-${arch}.${ext}"
     },
     "nsis": {
-      "artifactName": "Round-27-Setup-${version}-${arch}.${ext}",
+      "artifactName": "KIPSET-Setup-${version}-${arch}.${ext}",
       "oneClick": true,
       "perMachine": false,
       "deleteAppDataOnUninstall": false
-    }
-  },
-  "overrides": {
-    "xcode": {
-      "uuid": "11.1.1"
     }
   },
   "type": "module"

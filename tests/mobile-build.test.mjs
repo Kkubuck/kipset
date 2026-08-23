@@ -4,40 +4,40 @@ import test from "node:test";
 
 const projectFile = (path) => new URL(`../${path}`, import.meta.url);
 
-test("mobile bundle is complete and fully offline", async () => {
-  const [html, bridge, ...backgrounds] = await Promise.all([
+test("mobile bundle is complete, native-enabled, and offline-first", async () => {
+  const [html, styles, appBundle, bridge, front, back] = await Promise.all([
     readFile(projectFile("mobile-dist/index.html"), "utf8"),
-    readFile(projectFile("mobile-dist/native-bridge.js"), "utf8"),
-    stat(projectFile("mobile-dist/backgrounds/dawn-box.webp")),
-    stat(projectFile("mobile-dist/backgrounds/arena-light.webp")),
-    stat(projectFile("mobile-dist/backgrounds/concrete-room.webp")),
-    stat(projectFile("mobile-dist/backgrounds/chalk-air.webp")),
-    stat(projectFile("mobile-dist/backgrounds/rainy-warehouse.webp")),
+    readFile(projectFile("mobile-dist/kipset-assets/app.css"), "utf8"),
+    readFile(projectFile("mobile-dist/kipset-assets/app.js"), "utf8"),
+    readFile(projectFile("mobile-dist/kipset-assets/native-bridge.js"), "utf8"),
+    stat(projectFile("mobile-dist/anatomy/anatomy-front.webp")),
+    stat(projectFile("mobile-dist/anatomy/anatomy-back.webp")),
   ]);
 
-  assert.match(html, /<title>ROUND 27 — AMRAP TIMER<\/title>/);
-  assert.match(html, /src="\.\/native-bridge\.js"/);
-  assert.match(html, /27 ROUND CHALLENGE/);
-  assert.match(html, /\.\/backgrounds\/dawn-box\.webp/);
-  assert.equal((html.match(/class="background-choice"/g) ?? []).length, 5);
-  assert.ok(bridge.length > 1_000);
-  backgrounds.forEach((background) => assert.ok(background.size > 50_000));
+  assert.match(html, /KIPSET — Functional Fitness Companion/);
+  assert.match(html, /native-bridge\.js/);
+  assert.match(html, /viewport-fit=cover/);
+  assert.ok(html.indexOf("native-bridge.js") < html.indexOf("app.js"));
   assert.doesNotMatch(html, /https?:\/\//i);
+  assert.match(appBundle, /Cindy/);
+  assert.match(appBundle, /Share story image/);
+  assert.match(styles, /safe-area-inset-bottom/);
+  assert.match(styles, /safe-area-inset-top/);
+  assert.ok(bridge.length > 10_000);
+  assert.match(bridge, /app\.kipset\.training|KipsetNative|Share KIPSET Story/);
+  assert.ok(front.size > 10_000);
+  assert.ok(back.size > 10_000);
 });
 
-test("Capacitor has copied the bundle into the Android project", async () => {
+test("Capacitor project contains the current KIPSET bundle after sync", async () => {
   const nativeRoot = projectFile("android/app/src/main/assets/public/");
   await Promise.all([
     access(new URL("index.html", nativeRoot)),
-    access(new URL("native-bridge.js", nativeRoot)),
-    access(new URL("backgrounds/dawn-box.webp", nativeRoot)),
-    access(new URL("backgrounds/rainy-warehouse.webp", nativeRoot)),
+    access(new URL("kipset-assets/app.js", nativeRoot)),
+    access(new URL("kipset-assets/native-bridge.js", nativeRoot)),
+    access(new URL("anatomy/anatomy-front.webp", nativeRoot)),
   ]);
-
-  const config = await readFile(
-    projectFile("android/app/src/main/assets/capacitor.config.json"),
-    "utf8",
-  );
-  assert.match(config, /app\.jisanglee\.round27/);
-  assert.match(config, /Round 27/);
+  const config = await readFile(projectFile("android/app/src/main/assets/capacitor.config.json"), "utf8");
+  assert.match(config, /app\.kipset\.training/);
+  assert.match(config, /KIPSET/);
 });

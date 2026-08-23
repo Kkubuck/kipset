@@ -13,11 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Round 27 — Cindy AMRAP Timer",
-  description: "A clean Cindy timer with dynamic round pacing, result tracking, and story sharing.",
+  title: "KIPSET — Functional Fitness Companion",
+  description: "Plan, pace, and log functional fitness workouts in one focused training companion.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/brand/kipset-mark.png",
+    shortcut: "/brand/kipset-mark.png",
   },
 };
 

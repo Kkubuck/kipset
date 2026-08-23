@@ -5,43 +5,46 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputRoot = resolve(projectRoot, "mobile-dist");
-const sourceHtml = resolve(projectRoot, "index.html");
-const bridgeMarker = "    <script>\n      (() => {";
+const outputAssets = resolve(outputRoot, "kipset-assets");
+const appScript = '<script src="./kipset-assets/app.js" defer></script>';
 
 await rm(outputRoot, { recursive: true, force: true });
-await mkdir(outputRoot, { recursive: true });
+await mkdir(outputAssets, { recursive: true });
 
-let html = await readFile(sourceHtml, "utf8");
-if (!html.includes(bridgeMarker)) {
-  throw new Error("Could not find the Round 27 application script marker");
-}
+const html = (await readFile(resolve(projectRoot, "src", "app.html"), "utf8"))
+  .replace(appScript, `<script src="./kipset-assets/native-bridge.js" defer></script>\n    ${appScript}`);
 
-html = html
-  .replace(
-    bridgeMarker,
-    `    <script src="./native-bridge.js"></script>\n${bridgeMarker}`,
-  );
-
+if (!html.includes("native-bridge.js")) throw new Error("Could not inject the Android native bridge");
 await writeFile(resolve(outputRoot, "index.html"), html, "utf8");
-await copyFile(
-  resolve(projectRoot, "public", "favicon.svg"),
-  resolve(outputRoot, "favicon.svg"),
-);
-await cp(
-  resolve(projectRoot, "public", "backgrounds"),
-  resolve(outputRoot, "backgrounds"),
-  { recursive: true },
-);
 
-await build({
-  entryPoints: [resolve(projectRoot, "mobile", "native-bridge.ts")],
-  outfile: resolve(outputRoot, "native-bridge.js"),
-  bundle: true,
-  minify: true,
-  format: "iife",
-  platform: "browser",
-  target: ["chrome120"],
-  legalComments: "none",
-});
+await Promise.all([
+  build({
+    entryPoints: [resolve(projectRoot, "src", "app.jsx")],
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: ["chrome126"],
+    minify: true,
+    sourcemap: false,
+    legalComments: "none",
+    define: { "process.env.NODE_ENV": '"production"' },
+    outfile: resolve(outputAssets, "app.js"),
+  }),
+  build({
+    entryPoints: [resolve(projectRoot, "mobile", "native-bridge.ts")],
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: ["chrome126"],
+    minify: true,
+    sourcemap: false,
+    legalComments: "none",
+    outfile: resolve(outputAssets, "native-bridge.js"),
+  }),
+  copyFile(resolve(projectRoot, "src", "styles.css"), resolve(outputAssets, "app.css")),
+  cp(resolve(projectRoot, "public", "backgrounds"), resolve(outputRoot, "backgrounds"), { recursive: true }),
+  cp(resolve(projectRoot, "public", "brand"), resolve(outputRoot, "brand"), { recursive: true }),
+  cp(resolve(projectRoot, "public", "anatomy"), resolve(outputRoot, "anatomy"), { recursive: true }),
+]);
 
-console.log("Round 27 mobile web bundle is ready.");
+console.log("KIPSET Android web bundle is ready.");

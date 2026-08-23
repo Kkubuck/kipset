@@ -1,125 +1,184 @@
 <div align="center">
 
-# ROUND 27
+<img src="public/brand/kipset-mark.png" width="112" alt="KIPSET logo" />
 
-**A focused Cindy / AMRAP pace timer built for the workout floor.**
+# KIPSET
 
-[![Latest release](https://img.shields.io/github/v/release/Kkubuck/round-27?display_name=tag&sort=semver&style=flat-square)](https://github.com/Kkubuck/round-27/releases/latest)
-[![Cross-platform build](https://img.shields.io/github/actions/workflow/status/Kkubuck/round-27/release.yml?branch=main&label=cross-platform%20build&style=flat-square)](https://github.com/Kkubuck/round-27/actions/workflows/release.yml)
-[![Downloads](https://img.shields.io/github/downloads/Kkubuck/round-27/total?style=flat-square)](https://github.com/Kkubuck/round-27/releases)
-[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Android-111111?style=flat-square)](#download)
+**Offline-first functional fitness training for Windows, macOS, and Android.**
 
-[Download](https://github.com/Kkubuck/round-27/releases/latest) | [Features](#features) | [Build](#build-from-source) | [Security](SECURITY.md)
+[![Build](https://img.shields.io/github/actions/workflow/status/Kkubuck/kipset/release.yml?branch=main&label=builds&style=flat-square)](https://github.com/Kkubuck/kipset/actions/workflows/release.yml)
+[![License](https://img.shields.io/badge/license-MIT-f2f2f2?style=flat-square)](LICENSE)
+[![Languages](https://img.shields.io/badge/languages-EN%20%7C%20KO%20%7C%20JA%20%7C%20ZH-111111?style=flat-square)](#languages)
+[![Offline first](https://img.shields.io/badge/data-local%20only-a84440?style=flat-square)](PRIVACY.md)
+
+[Releases](https://github.com/Kkubuck/kipset/releases) · [Features](#features) · [Build](#build-from-source) · [Privacy](PRIVACY.md) · [Security](SECURITY.md)
 
 </div>
 
-![Round 27 live timer and workout result showcase](docs/round-27-readme-showcase.png)
+![KIPSET functional fitness dashboard and anatomy view](docs/kipset-showcase.png)
 
-<p align="center"><sub>Live countdown | adaptive round target | round history | rep totals | 1080 x 1920 Story export</sub></p>
+KIPSET combines a curated WOD library, adaptive round pacing, anatomy-based muscle focus, a manual running log, estimated calories, a training calendar, and Instagram Story results in one focused app. No account is required and training data stays on the device.
 
-## Download
+## Downloads
 
-Open the [latest release](https://github.com/Kkubuck/round-27/releases/latest) and select the file for your device.
+Builds produced by GitHub Actions are grouped by platform:
 
-| Platform | File | Use |
+| Platform | Artifact | Use |
 | --- | --- | --- |
-| Windows x64 | `Round-27-Setup-<version>-x64.exe` | One-click installer |
-| Windows x64 | `Round-27-Portable-<version>-x64.exe` | Run without installation |
-| Apple Silicon Mac | `Round-27-<version>-macOS-arm64.dmg` | M-series Mac installer image |
-| Intel Mac | `Round-27-<version>-macOS-x64.dmg` | Intel Mac installer image |
-| macOS archive | Matching `.zip` file | Portable app archive |
-| Android | `Round-27-Android-<version>.apk` | Sideloadable testing build |
+| Windows x64 | `KIPSET-Setup-<version>-x64.exe` | One-click per-user installer |
+| Windows x64 | `KIPSET-Portable-<version>-x64.exe` | Runs without installation |
+| macOS Apple Silicon | `KIPSET-<version>-macOS-arm64.dmg` or `.zip` | Native M-series build |
+| macOS Intel | `KIPSET-<version>-macOS-x64.dmg` or `.zip` | Intel Mac build |
+| Android | `KIPSET-Android-<version>-debug.apk` | Installable QA/preview APK |
+| Android | `KIPSET-Android-<version>-release-unsigned.apk` | Release input that must be signed before distribution |
 
-Each platform includes a matching `SHA256SUMS-*.txt` file. Verify the downloaded file before opening it.
-
-### Unsigned build notice
-
-Windows and macOS builds are not code-signed or notarized. Windows SmartScreen may show **Unknown publisher**, and macOS Gatekeeper may require **Control-click > Open** for the first launch. The APK is debug-signed for direct installation and testing; it is not a Play Store production build.
+Every platform artifact includes a SHA-256 checksum file. Community desktop builds are not yet code-signed or notarized, and the Android release APK is intentionally unsigned. Add protected signing credentials before store or commercial distribution.
 
 ## Features
 
-- A clear 20-minute AMRAP clock with large, high-contrast numbers.
-- Cindy defaults: 5 pull-ups, 10 push-ups, and 15 squats per round.
-- Dynamic pacing: remaining workout time is divided by remaining goal rounds after every completed round.
-- Current-round timer, previous-round time, target pace, undo, pause, and reset.
-- Five original workout backgrounds for the result card.
-- A clean 1080 x 1920 PNG result card ready for an Instagram Story.
-- Native result saving on Windows and macOS; Android system share sheet support.
-- Fullscreen support, display sleep prevention, and offline operation.
-- No account, ads, analytics, or cloud dependency.
+### Curated workout library
 
-## Use
+- 43 benchmark, Hero, foundation, and running workouts with searchable movements and equipment.
+- Category, five-level difficulty, and favorite filters.
+- Editable timer and round goals while the official/default prescription remains visible.
+- Source links for referenced prescriptions; difficulty and muscle emphasis are explicitly KIPSET editorial classifications.
 
-1. Set the workout duration and target rounds. The default challenge is 20 minutes / 27 rounds.
-2. Press **Start**.
-3. Press **+ Round** every time a full round is complete.
-4. Open **Result** when the workout ends, choose a background, and save or share the Story image.
+### Adaptive timer
 
-### Keyboard shortcuts
+- AMRAP, for-time, EMOM, intervals, max-rep, and max-load formats.
+- Large countdown or elapsed clock, live round split, previous split, pause, undo, and manual finish.
+- Completing a round early or late recalculates the next target from the remaining time and remaining goal rounds.
+- Keyboard controls on desktop and haptic round/finish feedback on Android.
+- Display sleep prevention during desktop sessions.
 
-| Key | Action |
+### Anatomy and scaling
+
+- Original semi-realistic front/back anatomy artwork with separate primary and secondary red heat-map overlays.
+- Human-readable muscle names, intended stimulus, equipment, and scaling guidance.
+- Black-and-white interface, high-contrast mode, reduced motion, and optional timer sounds.
+
+### History, running, and local data
+
+- Calendar for completed WODs and manually entered runs.
+- Monthly sessions, training time, running distance, and estimated calories.
+- Distance/time/RPE running entry with pace and speed calculations; no GPS or background location permission.
+- Favorites, recent-session repeat, JSON backup/restore, and complete local-data erase.
+
+### Story-ready results
+
+- Total time, rounds, average split, calories, and movement totals.
+- 30 locally bundled 9:16 training backgrounds.
+- 1080 × 1920 PNG output for Instagram Stories.
+- Native save dialog on desktop and Android share sheet on mobile.
+
+### Languages
+
+The interface, workout summaries, prescriptions, equipment, difficulty labels, and muscle names support:
+
+- English
+- 한국어
+- 日本語
+- 简体中文
+
+KIPSET follows the device language on first launch and stores later changes locally.
+
+## Accuracy and safety
+
+Official CrossFit references are used where available and linked from the relevant workout. KIPSET is independent software; its difficulty, muscle emphasis, scaling, and calorie classifications are not official CrossFit guidance.
+
+Calories are estimates rather than measurements. They use activity MET, body weight, duration, and selected RPE. Running bands reference the [2024 Adult Compendium of Physical Activities](https://pacompendium.com/running/); GPS, heart rate, body composition, temperature, and individual efficiency are not included.
+
+Choose loads and movement versions that preserve technique. New or returning athletes should consider the official [PAR-Q+ readiness process](https://eparmedx.com/) and qualified coaching before high-intensity training.
+
+## Controls
+
+| Input | Action |
 | --- | --- |
-| `Space` | Complete a round |
+| `Space` | Start or complete a round |
 | `P` | Pause or resume |
-| `F11` | Toggle fullscreen |
-| `Control + Command + F` | Toggle fullscreen on macOS |
+| `F11` | Fullscreen on Windows |
+| `Control` + `Command` + `F` | Fullscreen on macOS |
+| Android Back | Close the current overlay or return one app level |
 
-## Privacy
+## Privacy and security
 
-Round 27 runs locally and does not transmit workout data. It has no login, telemetry, advertising SDK, or remote API. Preferences stay on the device, and a result image is written only after the user chooses a save or share action.
+KIPSET includes no login, analytics, ads, telemetry, or remote workout API. Electron uses renderer sandboxing, context isolation, disabled Node.js integration, a narrow preload bridge, and an HTTPS host allowlist. Android disables cleartext traffic and application backup. See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md).
 
 ## Build from source
 
-All builds require Node.js 22.13 or newer.
+Common requirements are Node.js 22.13 or newer and npm.
 
 ```bash
 npm ci
-npm run check:release
+npm audit
 npm run lint
-npm audit --omit=dev
+npm run check:release
 ```
 
 ### Windows
 
+Run on Windows x64:
+
 ```powershell
+npm run desktop:dev
 npm run desktop:windows
 ```
 
-Outputs: `release/installer/` and `release/portable/`.
+Outputs are written to `release/portable` and `release/installer`.
 
 ### macOS
 
-Build on the matching Mac architecture with Xcode Command Line Tools installed:
+Run the matching command on macOS:
 
 ```bash
-npm run desktop:mac -- --arm64
-# or
-npm run desktop:mac -- --x64
+npm run desktop:mac:x64
+npm run desktop:mac:arm64
 ```
 
-Outputs: `release/macos/`.
+macOS packages must be built and signed on macOS. CI runs Intel and Apple Silicon targets separately.
 
 ### Android
 
-Java 21 and the Android SDK are required.
+Requires JDK 21 plus Android SDK Platform 36 and Build Tools 35:
 
 ```bash
 npm run android:debug
+npm run android:release
 ```
 
-Output: `android/app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK is installable for QA. The release APK must be signed with a private upload key that is never committed to the repository.
 
-## Release
-
-Every push and pull request builds Windows x64, macOS arm64, macOS x64, and Android artifacts on their native GitHub runners. A version tag waits for every platform to pass, then publishes all packages and platform-specific SHA-256 files in one GitHub Release.
+### Browser preview
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+npm run dev -- --port 8771
 ```
 
-Generated binaries, local deployment metadata, environment files, signing certificates, and credentials are excluded from Git. Production signing material must be stored outside the repository and supplied through encrypted release secrets.
+## Release pipeline
 
-## Disclaimer
+Every pull request and push runs a full dependency audit, lint, web tests, desktop/mobile bundle tests, Android synchronization, and platform builds. Windows runs on a Windows worker, macOS x64 and arm64 run on macOS workers, and Android runs with JDK 21 and the Android SDK. A `v*` tag publishes all generated files and checksums as a GitHub Release.
 
-Round 27 is an independent training utility and is not affiliated with or endorsed by CrossFit, Inc. Exercise responsibly and scale movements to your ability.
+```bash
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+Before a public store launch, configure Authenticode, Apple Developer ID/notarization, and Android signing through encrypted repository secrets. Never commit certificates, passwords, API keys, `.env` files, keystores, or provisioning profiles.
+
+## Project structure
+
+- `src/wod-data.js` — WOD database, muscle classifications, and 30 Story backgrounds.
+- `src/i18n.js` — complete four-language interface and workout localization.
+- `src/fitness-metrics.js` — adaptive pace, movement totals, and calorie estimates.
+- `desktop/` — hardened Electron shell for Windows and macOS.
+- `mobile/` and `android/` — Capacitor bridge and native Android project.
+- `docs/DESIGN.md` — product design principles and reference standards.
+- `THIRD_PARTY_NOTICES.md` — dependency and reference credits.
+
+## Trademark disclaimer
+
+KIPSET is independent functional-fitness software and is not affiliated with or endorsed by CrossFit, LLC. “CrossFit” and workout names may be trademarks of their respective owners. KIPSET is a provisional product name; professional trademark clearance should precede commercial release.
+
+## License
+
+Source code is available under the [MIT License](LICENSE). Brand and generated media assets are included in this repository; confirm final brand, trademark, and media rights as part of launch due diligence.

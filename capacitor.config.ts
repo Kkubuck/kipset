@@ -1,12 +1,11 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "app.jisanglee.round27",
-  appName: "Round 27",
+  appId: "app.kipset.training",
+  appName: "KIPSET",
   webDir: "mobile-dist",
-  bundledWebRuntime: false,
   android: {
-    backgroundColor: "#000000",
+    backgroundColor: "#08090b",
     allowMixedContent: false,
     webContentsDebuggingEnabled: false,
   },

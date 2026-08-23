@@ -51,7 +51,6 @@ GoogleService-Info.plist
 *.snk
 /certificates/
 /desktop/signing/
-/android/key.properties
 
 # vercel
 .vercel
@@ -60,12 +59,16 @@ GoogleService-Info.plist
 /.wrangler/
 /outputs/
 /work/
-/mobile-dist/
 /desktop-dist/
 /desktop-resources/
+/mobile-dist/
 /release/
+/docs/screens/
+
+# Android local and generated build state
 /android/.gradle/
+/android/.idea/
 /android/local.properties
-/android/app/build/
-/android/build/
-/resources/generated/
+/android/**/build/
+*.apk
+*.aab

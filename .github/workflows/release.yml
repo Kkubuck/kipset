@@ -1,4 +1,4 @@
-name: Cross-platform release
+name: Build and release KIPSET
 
 on:
   push:
@@ -14,32 +14,45 @@ env:
   NODE_VERSION: 22.13.0
 
 jobs:
-  windows:
-    runs-on: windows-latest
-    timeout-minutes: 30
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v5
-
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
       - run: npm ci
-      - run: npm audit --omit=dev
-      - run: npm run check:desktop
+      - run: npm audit
+      - run: npm run lint
+      - run: npm run check:release
+
+  windows:
+    needs: quality
+    runs-on: windows-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
       - run: npm run desktop:windows
 
-      - name: Generate Windows checksums
+      - name: Validate Windows artifacts and generate checksums
         shell: pwsh
         run: |
           $files = @(
-            Get-ChildItem release/portable -File -Filter "Round-27-Portable-*.exe"
-            Get-ChildItem release/installer -File -Filter "Round-27-Setup-*.exe"
+            Get-ChildItem release/portable -File -Filter "KIPSET-Portable-*.exe"
+            Get-ChildItem release/installer -File -Filter "KIPSET-Setup-*.exe"
           ) | Sort-Object Name
-          if ($files.Count -ne 2) {
-            throw "Expected two Windows executables, found $($files.Count)."
+          if ($files.Count -ne 2) { throw "Expected two Windows artifacts, found $($files.Count)." }
+          foreach ($file in $files) {
+            if ($file.Length -lt 50MB) { throw "$($file.Name) is unexpectedly small." }
           }
           $lines = foreach ($file in $files) {
             $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $file.FullName).Hash.ToLowerInvariant()
@@ -49,153 +62,129 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: round-27-windows-x64
+          name: kipset-windows-x64
           path: |
-            release/portable/Round-27-Portable-*.exe
-            release/installer/Round-27-Setup-*.exe
+            release/portable/KIPSET-Portable-*.exe
+            release/installer/KIPSET-Setup-*.exe
             release/SHA256SUMS-windows.txt
           if-no-files-found: error
           retention-days: 14
 
-  macos:
-    name: macOS (${{ matrix.arch }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            arch: arm64
-          - runner: macos-15-intel
-            arch: x64
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - run: npm ci
-      - run: npm audit --omit=dev
-      - run: npm run check:desktop
-      - run: npm run desktop:mac -- --${{ matrix.arch }}
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-
-      - name: Validate macOS artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          dmgs=(release/macos/*.dmg)
-          zips=(release/macos/*.zip)
-          test "${#dmgs[@]}" -eq 1
-          test "${#zips[@]}" -eq 1
-
-          hdiutil verify "${dmgs[0]}"
-          unzip -t "${zips[0]}" >/dev/null
-
-          rm -rf release/macos/verify
-          mkdir -p release/macos/verify
-          ditto -x -k "${zips[0]}" release/macos/verify
-
-          app_bundle="$(find release/macos/verify -maxdepth 1 -type d -name '*.app' -print -quit)"
-          test -n "$app_bundle"
-          plutil -lint "$app_bundle/Contents/Info.plist"
-
-          app_binary="$app_bundle/Contents/MacOS/Round 27"
-          test -x "$app_binary"
-          binary_info="$(file "$app_binary")"
-          echo "$binary_info"
-          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
-            grep -q "arm64" <<<"$binary_info"
-          else
-            grep -q "x86_64" <<<"$binary_info"
-          fi
-
-      - name: Generate macOS checksums
-        shell: bash
-        run: |
-          shopt -s nullglob
-          files=(
-            release/macos/Round-27-*-macOS-${{ matrix.arch }}.dmg
-            release/macos/Round-27-*-macOS-${{ matrix.arch }}.zip
-          )
-          if [[ ${#files[@]} -ne 2 ]]; then
-            echo "Expected a DMG and ZIP, found ${#files[@]}." >&2
-            exit 1
-          fi
-          : > "release/SHA256SUMS-macos-${{ matrix.arch }}.txt"
-          for file in "${files[@]}"; do
-            hash=$(shasum -a 256 "$file" | cut -d ' ' -f 1)
-            printf '%s  %s\n' "$hash" "$(basename "$file")" >> "release/SHA256SUMS-macos-${{ matrix.arch }}.txt"
-          done
-
-      - uses: actions/upload-artifact@v6
-        with:
-          name: round-27-macos-${{ matrix.arch }}
-          path: |
-            release/macos/Round-27-*-macOS-${{ matrix.arch }}.dmg
-            release/macos/Round-27-*-macOS-${{ matrix.arch }}.zip
-            release/SHA256SUMS-macos-${{ matrix.arch }}.txt
-          if-no-files-found: error
-          retention-days: 14
-
   android:
+    needs: quality
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - uses: actions/checkout@v5
-
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
-
-      - uses: gradle/actions/setup-gradle@v5
-
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
       - run: npm ci
-      - run: npm audit --omit=dev
       - run: npm run android:debug
+      - run: node scripts/run-gradle.mjs assembleRelease
 
-      - name: Validate and name APK
+      - name: Validate Android artifacts and generate checksums
         shell: bash
         run: |
-          source_apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          set -euo pipefail
           version=$(node -p "require('./package.json').version")
           mkdir -p release/android
-          cp "$source_apk" "release/android/Round-27-Android-${version}.apk"
-          unzip -t "release/android/Round-27-Android-${version}.apk" >/dev/null
-          apksigner=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
-          if [[ -z "$apksigner" ]]; then
-            echo "Android apksigner was not found." >&2
-            exit 1
-          fi
-          "$apksigner" verify --verbose "release/android/Round-27-Android-${version}.apk"
-          hash=$(shasum -a 256 "release/android/Round-27-Android-${version}.apk" | cut -d ' ' -f 1)
-          printf '%s  %s\n' "$hash" "Round-27-Android-${version}.apk" > release/SHA256SUMS-android.txt
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release/android/KIPSET-Android-${version}-debug.apk"
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk "release/android/KIPSET-Android-${version}-release-unsigned.apk"
+          apks=(release/android/*.apk)
+          test "${#apks[@]}" -eq 2
+          for apk in "${apks[@]}"; do test "$(stat -c%s "$apk")" -gt 1000000; unzip -t "$apk" >/dev/null; done
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "release/android/KIPSET-Android-${version}-debug.apk"
+          badging=$("$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "release/android/KIPSET-Android-${version}-debug.apk")
+          grep -q "name='app.kipset.training'" <<<"$badging"
+          grep -q "versionName='${version}'" <<<"$badging"
+          (cd release/android && sha256sum *.apk > SHA256SUMS-android.txt)
 
       - uses: actions/upload-artifact@v6
         with:
-          name: round-27-android
+          name: kipset-android
+          path: release/android/*
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    needs: quality
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: macos-15-intel
+            script: desktop:mac:x64
+            output: release/macos-x64
+          - arch: arm64
+            runner: macos-15
+            script: desktop:mac:arm64
+            output: release/macos-arm64
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run ${{ matrix.script }}
+
+      - name: Validate macOS artifacts and generate checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          dmgs=("${{ matrix.output }}"/KIPSET-*.dmg)
+          zips=("${{ matrix.output }}"/KIPSET-*.zip)
+          test "${#dmgs[@]}" -eq 1
+          test "${#zips[@]}" -eq 1
+          test "$(stat -f%z "${dmgs[0]}")" -gt 50000000
+          test "$(stat -f%z "${zips[0]}")" -gt 50000000
+          hdiutil verify "${dmgs[0]}"
+          unzip -t "${zips[0]}" >/dev/null
+          verify_dir=$(mktemp -d)
+          trap 'rm -rf "$verify_dir"' EXIT
+          ditto -x -k "${zips[0]}" "$verify_dir"
+          app_bundle=$(find "$verify_dir" -maxdepth 1 -type d -name '*.app' -print -quit)
+          test -n "$app_bundle"
+          plutil -lint "$app_bundle/Contents/Info.plist"
+          binary="$app_bundle/Contents/MacOS/KIPSET"
+          test -x "$binary"
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            file "$binary" | grep -q "arm64"
+          else
+            file "$binary" | grep -q "x86_64"
+          fi
+          (cd "${{ matrix.output }}" && shasum -a 256 KIPSET-* > "SHA256SUMS-macos-${{ matrix.arch }}.txt")
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: kipset-macos-${{ matrix.arch }}
           path: |
-            release/android/Round-27-Android-*.apk
-            release/SHA256SUMS-android.txt
+            ${{ matrix.output }}/KIPSET-*.dmg
+            ${{ matrix.output }}/KIPSET-*.zip
+            ${{ matrix.output }}/SHA256SUMS-macos-${{ matrix.arch }}.txt
           if-no-files-found: error
           retention-days: 14
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [windows, macos, android]
+    needs: [windows, android, macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -203,11 +192,10 @@ jobs:
     steps:
       - uses: actions/download-artifact@v7
         with:
-          pattern: round-27-*
+          pattern: kipset-*
           path: release
           merge-multiple: true
-
-      - name: Publish release
+      - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -215,20 +203,5 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -d '' assets < <(find release -type f -print0 | sort -z)
-          if [[ ${#assets[@]} -ne 11 ]]; then
-            printf 'Expected 11 release files, found %s:\n' "${#assets[@]}" >&2
-            printf '  %s\n' "${assets[@]}" >&2
-            exit 1
-          fi
-          for asset in "${assets[@]}"; do
-            case "$asset" in
-              *.exe|*.dmg|*.zip|*.apk|*/SHA256SUMS-*.txt) ;;
-              *)
-                printf 'Unexpected release file: %s\n' "$asset" >&2
-                exit 1
-                ;;
-            esac
-          done
-          gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
-            --generate-notes \
-            --title "Round 27 $GITHUB_REF_NAME"
+          test "${#assets[@]}" -eq 12
+          gh release create "$GITHUB_REF_NAME" "${assets[@]}" --generate-notes --title "KIPSET $GITHUB_REF_NAME"
